@@ -7,7 +7,6 @@ export const login = async (email, password) => {
   try {
     const { data } = await apiClient.post('/auth/login', { email, password });
     
-    // (중요!) 로그인 성공 시 서버가 준 사용자 정보(토큰 포함)를 로컬 스토리지에 저장
     if (data && data.token) {
       localStorage.setItem('userInfo', JSON.stringify(data));
     }
@@ -23,10 +22,8 @@ export const register = async (username, email, password) => {
       username,
       email,
       password,
-      // (참고) 기본값 'customer'로 회원가입 됨
     });
     
-    // (중요!) 회원가입 성공 시에도 바로 로그인 처리
     if (data && data.token) {
       localStorage.setItem('userInfo', JSON.stringify(data));
     }
@@ -38,7 +35,7 @@ export const register = async (username, email, password) => {
 
 // --- 객실 (Room) ---
 
-// (GET) 모든 객실 목록 가져오기
+// (GET) 모든 객실 목록 가져오기 (관리자용)
 export const getRooms = async () => {
   try {
     const { data } = await apiClient.get('/rooms');
@@ -51,7 +48,6 @@ export const getRooms = async () => {
 // (POST) 새 객실 생성 (관리자)
 export const createRoom = async (roomData) => {
   try {
-    // (참고) apiClient가 자동으로 헤더에 토큰을 넣어 보냅니다.
     const { data } = await apiClient.post('/rooms', roomData);
     return data;
   } catch (error) {
@@ -78,3 +74,21 @@ export const deleteRoom = async (roomId) => {
     throw error.response?.data?.message || error.message;
   }
 };
+
+// --- 예약 (Reservation) ---
+
+// (GET) 예약 가능한 객실 목록 가져오기 (고객용)
+export const getAvailableRooms = async ({ checkIn, checkOut, capacity }) => {
+  try {
+    const { data } = await apiClient.get('/rooms/available', {
+      params: { checkIn, checkOut, capacity },
+    });
+    return data;
+  } catch (error) {
+    // API 에러가 났을 때, "사용 가능한 객실이 없습니다" 등의 메시지를 보여줄 수 있음
+    throw error.response?.data?.message || error.message;
+  }
+};
+
+// (추후 추가) 새 예약 생성
+// export const createReservation = async (reservationData) => { ... };
